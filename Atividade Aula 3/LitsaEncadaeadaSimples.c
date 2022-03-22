@@ -25,7 +25,7 @@ void percorrerLista(Lista *);
 int remover(Lista *, Elemento *);
 void verificarErro(int);
 void verificarLista(Lista*, int);
-
+void limparLista(Lista*);
 int main(int argc, char const *argv[])
 {
 	Lista *lista = alocaMemoria();
@@ -47,6 +47,8 @@ int main(int argc, char const *argv[])
 	percorrerLista(lista);
 
 	verificarLista(lista, 50);
+	
+	limparLista(lista);
 	return 0;
 }
 
