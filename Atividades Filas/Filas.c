@@ -20,11 +20,10 @@ typedef struct
 Lista *alocaMemoria();
 Elemento *alocarMemoria();
 Elemento* verificarLista(Lista *, int);
-
 void liberaMemoria(Lista *);
 void liberarMemoria(Elemento *);
 void percorrerLista(Lista *);
-void remover(Lista *, Elemento *);
+int remover(Lista *, Elemento *);
 void verificarErro(int);
 void percorrerListaCauda(Lista*);
 void inserirFila(Lista*, Lista*, int);
@@ -33,7 +32,6 @@ void removerMeio(Lista*, Elemento*);
 void removerPrioridade(Lista*,Lista*);
 void verificarEspera(Lista*, Lista*);
 void limparLista(Lista*);
-
 int empty(Lista*);
 int inserirDado(int, Lista *, Elemento *);
 
@@ -60,6 +58,7 @@ int main(int argc, char const *argv[]){
 	percorrerLista(espera);
 
 	removerFila(lista,espera,verificarLista(lista,12));
+    
 	removerFila(lista,espera,verificarLista(lista,20));
 	removerPrioridade(lista,espera);
 
@@ -152,15 +151,14 @@ void percorrerListaCauda(Lista *l)
 	}
 }
 
-void remover(Lista *l, Elemento *pivo)
+int remover(Lista *l, Elemento *pivo)
 {
-	
+    int d = pivo->dado;
 	if (pivo != NULL && empty(l) == 1)
 	{
 		if (pivo == l->head)
 		{
 			l->head = pivo->next;
-
 			if (l->head == NULL)
 			{
 				l->tail = NULL;
@@ -173,7 +171,6 @@ void remover(Lista *l, Elemento *pivo)
 		else
 		{
 			pivo->prev->next = pivo->next;
-
 			if (pivo->next == NULL)
 			{
 				l->tail = pivo->prev;
@@ -185,115 +182,110 @@ void remover(Lista *l, Elemento *pivo)
 		}
 		free(pivo);
 		l->size--;
+        return d;
 	}
 }
-	void verificarErro(int erro)
-	{
-		if (erro == 0)
-		{
-		}
-		else if (erro == -2)
-		{
-			printf("Não há elemento de referência.");
-		}
-		else if (erro == -3)
-		{
-			printf("O elemento pivo é o último elemento da lista.");
-		}
-	}
+void verificarErro(int erro)
+{
+    if (erro == 0)
+    {
+    }
+    else if (erro == -2)
+    {
+        printf("Não há elemento de referência.");
+    }
+    else if (erro == -3)
+    {
+        printf("O elemento pivo é o último elemento da lista.");
+    }
+}
 
-	Elemento* verificarLista(Lista * l, int dado)
-	{
-		Elemento *e = l->head;
-		int cont = 0;
-		while (e != NULL)
-		{
-			if (e->dado == dado)
-			{
-				return e;
-			}
-			e = e->next;
-			cont++;
-		}
-	}
+Elemento* verificarLista(Lista * l, int dado)
+{
+    Elemento *e = l->head;
+    int cont = 0;
+    while (e != NULL)
+    {
+        if (e->dado == dado)
+        {
+            return e;
+        }
+        e = e->next;
+        cont++;
+    }
+    return NULL;
+}
 
-	void inserirFila(Lista* l, Lista* espera, int dado){
-		if (l->size < TAM_MAX){
-			verificarErro(inserirDado(dado,l,l->tail));
-		} else {
-			verificarErro(inserirDado(dado, espera, espera->tail));
-			printf("Estacionamento cheio, enviando para fila de espera.");
-		}			
-	}
+void inserirFila(Lista* l, Lista* espera, int dado){
+    if (l->size < TAM_MAX){
+        verificarErro(inserirDado(dado,l,l->tail));
+    } else {
+        verificarErro(inserirDado(dado, espera, espera->tail));
+        printf("Estacionamento cheio, enviando para fila de espera.");
+    }			
+}
 
-	void removerFila(Lista* l, Lista* espera, Elemento* e){
-		if (e->dado==l->head->dado){
-			remover(l, l->head);
-		} else{
-			removerMeio(l,e);
-		}
-		verificarEspera(l,espera);
-	}
+void removerFila(Lista* l, Lista* espera, Elemento* e){
+    if (e->dado==l->head->dado){
+        remover(l, l->head);
+    } else{
+        removerMeio(l,e);
+    }
+    verificarEspera(l,espera);
+}
 
-	void removerMeio(Lista* l, Elemento* e){
-		Elemento* aux=l->head;
-		int d;
-		do
-		{
-			if (l->head == e){
-				remover(l,e);
-			} else{
-			d = l->head->dado;
-			remover(l,l->head);
-			inserirDado(d,l,l->tail);
-			}
-		} while (aux!=l->head);
-	}
+void removerMeio(Lista* l, Elemento* e){
+    Elemento* aux=l->head;
+    int dado;
+    do{
+        dado =remover(l,l->head);
+        if (dado != e->dado){
+            inserirDado(l->head->dado,l,l->tail);
+        }
+    } while (aux!=l->head);
+}
 
-	void removerPrioridade(Lista* l,Lista* espera){
-		Elemento* menor = alocarMemoria();
-		Elemento* e = alocarMemoria();
-		menor->dado =999;
-		e=l->head;
-		while (e != NULL)
-		{
-			if (e->dado<menor->dado){
-				menor= e;
-			}
-			e = e->next;	
-		}
-		remover(l,menor);
-		verificarEspera(l,espera);
-	}
+void removerPrioridade(Lista* l,Lista* espera){
+    Elemento* menor = l->head;
+    Elemento* e=l->head;
+    while (e != NULL)
+    {
+        if (e->dado<menor->dado){
+            menor= e;
+        }
+        e = e->next;	
+    }
+    remover(l,menor);
+    verificarEspera(l,espera);
+}
 
-	void verificarEspera(Lista* l, Lista* espera){
-		if (l->size<TAM_MAX && empty(espera)==1){
-			verificarErro(inserirDado(espera->head->dado,l,l->tail));
-			remover(espera,espera->head);
-		}
-	}
+void verificarEspera(Lista* l, Lista* espera){
+    if (l->size<TAM_MAX && empty(espera)==1){
+        verificarErro(inserirDado(espera->head->dado,l,l->tail));
+        remover(espera,espera->head);
+    }
+}
 
-	void limparLista(Lista * l)
-	{
-		Elemento *e;
-		Elemento *exc;
+void limparLista(Lista * l)
+{
+    Elemento *e;
+    Elemento *exc;
 
-		e = l->head;
+    e = l->head;
 
-		while (e != NULL)
-		{
-			exc = e;
-			e = e->next;
-			free(exc);
-		}
-		free(l);
-	}
+    while (e != NULL)
+    {
+        exc = e;
+        e = e->next;
+        free(exc);
+    }
+    free(l);
+}
 
-	int empty(Lista* l){
-		if (l->size==0){
-			return 0;
-		} else{
-			return 1;
-		}
-		
-	}
+int empty(Lista* l){
+    if (l->size==0){
+        return 0;
+    } else{
+        return 1;
+    }
+}
