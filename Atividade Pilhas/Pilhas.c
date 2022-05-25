@@ -18,15 +18,13 @@ typedef struct
 
 Lista *alocaMemoria();
 Elemento *alocarMemoria();
-void liberaMemoria(Lista *);
 void verificarExpressao(Lista*, char[]);
-void liberarMemoria(Elemento *);
 //void percorrerLista(Lista *);
 char remover(Lista *, Elemento *);
 void verificarErro(int);
 //void percorrerListaCauda(Lista*);
 int verificarTopo(Lista*, char);
-int inserirPilha(Lista*, char[]);
+int validarExpressao(Lista*, char[]);
 void limparLista(Lista*);
 int empty(Lista*);
 int inserirDado(char, Lista *, Elemento *);
@@ -48,19 +46,14 @@ int main(int argc, char const *argv[]){
 	char exp5[] = "(((A))))";
 
 	verificarExpressao(lista,exp1);
-	limparLista(lista);
 
 	verificarExpressao(lista,exp2);
-	limparLista(lista);
 
 	verificarExpressao(lista,exp3);
-	limparLista(lista);
 
 	verificarExpressao(lista,exp4);
-	limparLista(lista);
 
 	verificarExpressao(lista,exp5);
-	limparLista(lista);
 	
 	free(lista);
 	return 0;
@@ -183,8 +176,8 @@ void verificarErro(int erro)
     }
 }
 
-int inserirPilha(Lista* l, char dados[]){
-   	for (size_t i = 0; i < strlen(dados); i++){
+int validarExpressao(Lista* l, char dados[]){
+   	for (int i = 0; i < strlen(dados); i++){
 		if (dados[i]=='{'||dados[i]=='('||dados[i]=='['){
 			inserirDado(dados[i], l, l->tail);
 
@@ -245,17 +238,18 @@ int empty(Lista* l){
 }
 
 void verificarExpressao(Lista *l, char dados []){
-	int r = inserirPilha(l,dados);
+	int r = validarExpressao(l,dados);
 	imprimirExpressao(dados);
 		if(r==-4 || l->size>0){
 			printf("Expressao Invalida\n");
 		} else{
 			printf("Expressao Valida.\n");
 		}
+	limparLista(l);
 }
  
 void imprimirExpressao(char dados[]){
-	for (size_t i = 0; i < strlen(dados); i++){
+	for (int i = 0; i < strlen(dados); i++){
 		printf("%c",dados[i]);
 	}
 }
