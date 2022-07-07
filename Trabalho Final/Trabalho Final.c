@@ -27,33 +27,35 @@ typedef struct sLista{
 } Lista;
 
 Lista* alocarLista();
-Elemento* alocarElemento();
 Indice* alocarIndice();
+Indice* chamarInserir(Lista* ,char []);
+Indice* removerNomeEspecifico(Lista*, char[]);
+Indice* encontrarIndice(Lista*, int);
+Elemento* alocarElemento();
+Elemento* encontrarMeio(int,Indice*);
+Elemento* partition(Elemento *, Elemento*);
+FILE* carregarArquivo();
+char* lerNome();
+int inserirDado(char[],Indice*, Elemento*);
+int hash(char[]);
+int encontrarPosicaoNome(Indice*, char[]);
+int inserirIndice(Lista*, Indice*);
 int emptyIndice(Indice*);
 int emptyLista(Lista*);
 void limparIndice(Indice*);
 void limparLista(Lista*);
 void remover(Indice*,Elemento*);
-int inserirDado(char[],Indice*, Elemento*);
 void percorrerIndice(Indice*);
-int inserirIndice(Lista*, Indice*);
-Indice* encontrarIndice(Lista*, int);
 void inserirAllIndices(Lista*);
-int hash(char[]);
-FILE* carregarArquivo();
 void inserirAllNomes(Lista*);
 void imprimirSizes(Lista*);
 void removerIndice(Lista *, Indice *);
-int encontrarPosicaoNome(Indice*, char[]);
 void imprimirPosicaoNome(Lista*, char[]);
-Indice* removerNomeEspecifico(Lista*, char[]);
-Elemento* encontrarMeio(int,Indice*);
-void quickSort(Indice *, int, int);
 void changeNome(Elemento*,Elemento*);
-Indice* chamarInserir(Lista* ,char []);
-char* lerNome();
 void menu(Lista*);
-void ordenarAll(Lista* l);
+void ordenarAll(Lista*);
+void verificarErro(int);
+void quickSort(Elemento*, Elemento*);
 
 int main(){
 	
@@ -67,26 +69,6 @@ int main(){
 	inserirAllNomes(lista);
 	menu(lista);
 	limparLista(lista);
-	// Indice* i = encontrarIndice(lista,hash(nome1));
-	// inserirDado(nome1,i,i->tail);
-	// inserirDado(nome1,i,i->tail);
-	// removerNomeEspecifico(lista,nome1);
-
-
-	// Indice* i = encontrarIndice(lista,20);
-
-	//percorrerIndice(i);
-	// inserirDado("CARLOS",encontrarIndice(lista,hash("CARLOS")),encontrarIndice(lista,hash("CARLOS"))->tail);
-	// imprimirSizes(lista);
-	// encontrarIndice(lista,hash("CARLOS"));
-	
-	// imprimirPosicaoNome(lista,"RAILOM");
-	// percorrerIndice(encontrarIndice(lista,20));
-
-	// imprimirSizes(lista);
-	// printf("Hash: %i",hash("CARLOS"));
-	// percorrerIndice(encontrarIndice(lista,51));
-
 
 	return 0;
 }
@@ -363,7 +345,6 @@ void inserirAllNomes(Lista* l){
 			chamarInserir(l,nome);
 		}
 	}
-	ordenarAll(l);
 }
 
 void ordenarAll(Lista* l){
@@ -371,7 +352,7 @@ void ordenarAll(Lista* l){
 
 	while (aux != NULL)
 	{
-		quickSort(aux,0,aux->size-1);
+        quickSort(aux->head,aux->tail);
 		aux = aux->next;
 	}
 }
@@ -460,38 +441,6 @@ Elemento* encontrarMeio(int c,Indice* in){
 	}
 }
 
-void quickSort(Indice *in, int inicio, int fim) {
-  	int  i = inicio;
-    int j = fim;
-    Elemento* x = encontrarMeio((inicio + fim) / 2,in) ;
-	Elemento* auxInicio = encontrarMeio(inicio,in);
-	Elemento* auxFinal = encontrarMeio(fim,in);
-     
-    while(i <= j) {
-        while((strcmp(auxInicio->nome,x->nome)< 0)) {
-            i++;
-			auxInicio = auxInicio->next;
-        }
-        while((strcmp(auxFinal->nome,x->nome)> 0)) {
-			auxFinal = auxFinal->prev;
-            j--;
-        }
-
-        if(i <= j) {
-			changeNome(auxInicio,auxFinal);
-            i++;
-            j--;
-        }
-    }
-     
-    if(j > inicio) {
-        quickSort(in, inicio, j);
-    }
-    if(i < fim) {
-        quickSort(in, i, fim);
-    }
-}
-
 void changeNome(Elemento* x, Elemento* y){
 	Elemento* e = alocarElemento();
 
@@ -522,13 +471,19 @@ void menu(Lista *l){
 			printf("\nDigite o indice que deseja acessar:\n");
 			int i;
 			scanf("%i",&i);
-			percorrerIndice(encontrarIndice(l,i));
+            Indice* indice = encontrarIndice(l,i);
+            if (indice!=NULL){
+			    percorrerIndice(indice);
+            } else{
+                printf("Indice informado nao existe.");
+            }
+            
 			break;
 
 		case 2: // inserir novo nome
 			strcpy(nome,lerNome());
 			Indice* in = chamarInserir(l,nome);
-			quickSort(in,0,in->size-1);
+			quickSort(in->head,in->tail);
 			percorrerIndice(in);
 			break;
 
@@ -547,6 +502,10 @@ void menu(Lista *l){
 			imprimirPosicaoNome(l,nome);
 			break;
 		
+        case 6:
+            ordenarAll(l);
+            break;
+            
 		case 0: //sair
 			printf("\nFinalizando\n");
 			break;
@@ -566,6 +525,7 @@ int imprimirMenu(){
 	printf("\n3 - Imprimir Quantidade de Elementos em Cada Chave");
 	printf("\n4 - Remover um Nome");
 	printf("\n5 - Encontrar a Posicao de um Nome");
+    printf("\n6 - Ordenar Todas as Chaves");
 	printf("\n0 - Sair\n");
 	scanf("%i",&op);
 
@@ -578,4 +538,42 @@ void verificarErro(int erro){
 	} else if(erro==-2){
 		printf("Impossível Inserir");
 	}
+}
+
+Elemento* partition(Elemento *head, Elemento *tail){
+    char nome[20];
+    strcpy(nome,tail->nome);
+  
+    Elemento *i = head->prev;
+  
+    for (Elemento *j = head; j != tail; j = j->next)
+    {
+        if (strcmp(j->nome,nome)<0){
+            if (i==NULL){
+                i = head;
+            }
+            else{
+                i = i->next;
+            }
+            changeNome(i,j);
+        }
+    }
+    if (i==NULL){
+        i=head;
+    } else{
+        i=i->next;
+    }
+    
+    changeNome(i,tail);
+    return i;
+}
+  
+/* A recursive implementation of quicksort for linked list */
+void quickSort(Elemento* head, Elemento* tail){
+    if (tail != NULL && head != tail && head != tail->next)
+    {
+        Elemento *e = partition(head, tail);
+        quickSort(head, e->prev);
+        quickSort(e->next, tail);
+    }
 }
