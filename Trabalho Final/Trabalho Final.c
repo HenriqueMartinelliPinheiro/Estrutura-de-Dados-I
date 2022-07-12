@@ -345,6 +345,7 @@ void inserirAllNomes(Lista* l){
 			chamarInserir(l,nome);
 		}
 	}
+	fclose(file);
 }
 
 void ordenarAll(Lista* l){
